@@ -127,38 +127,3 @@ if __name__ == '__main__':
         passw = a.passw[i]
         atk_svc(a.module, target, usr, passw)
         time.sleep(a.sleep)
-        
-        
-        
-        
-        
-        
-        
-        
-# Parse Brute Force Info
-    if Breach.brute:
-      if (not Breach.usr or not Breach.password) and (not Breach.combo):
-        print("User / Password / Combo not specified.. exit")
-        exit(1)
-      if Breach.combo:
-        if os.path.isfile(Breach.combo):
-          Breach.combo = Breach.parse_file(Breach.combo)
-        print("Parsing combo list")
-        Breach.usr = []
-        Breach.password = []
-        for lin in Breach.combo:
-          x = lin.split(":")
-          Breach.usr.append(x[0].strip())
-          Breach.passw.append(x[1].strip())    
-      else:
-        if os.path.isfile(Breach.usr):
-          Breach.usr = Breach.parse_file(Breach.usr)
-        else:
-          Breach.usr = [Breach.usr]
-        if os.path.isfile(Breach.password):
-          Breach.password = Breach.parse_file(Breach.password)
-        else:
-          Breach.password = [Breach.password]
-        if (not len(Breach.usr) == len(Breach.password)) and (len(Breach.usr) > 1 and len(Breach.password) > 1) and not Breach.allc :
-          print("usr and passw not same length.. check files!")
-          exit(1)

